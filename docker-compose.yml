@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  go-eth:
+    image: golang:1.23
+    working_dir: /go-eth
+    volumes:
+      - ./src:/go-eth
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mongo
+    networks:
+      - go-eth-network
+    command: bash -c "go mod download && go run main.go"
+
+  mongo:
+    image: mongo:5.0
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    networks:
+      - go-eth-network
+
+networks:
+  go-eth-network:
+    driver: bridge
