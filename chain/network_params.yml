@@ -32,7 +32,7 @@ network_params:
   # To prefund multiple accounts, separate them with a comma
   #
   # prefunded_accounts: '{"0x25941dC771bB64514Fc8abBce970307Fb9d477e9": {"balance": "10ETH"}, "0x4107be99052d895e3ee461C685b042Aa975ab5c0": {"balance": "1ETH"}}'
-  prefunded_accounts: '{"0x0e53ea1141d895bd1ba92b29a4d01f5b256aceda": {"balance": "10ETH"}}'
+  prefunded_accounts: '{"0x22ECBB91f0220a5E3099a44AbD3B52F6F118Bf8E": {"balance": "10000ETH"}}'
 
 additional_services:
   - dora

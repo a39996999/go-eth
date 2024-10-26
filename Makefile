@@ -10,6 +10,10 @@ remove-chain:
 run-service:
 	docker compose up -d
 
+restart-service:
+	docker compose down
+	docker compose up -d
+
 connect-containers:
 	@containers=$$(docker ps --filter "name=el-1-geth-teku-" --format "{{.ID}}"); \
 	for container in $$containers; do \

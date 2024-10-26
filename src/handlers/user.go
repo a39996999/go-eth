@@ -2,12 +2,11 @@ package handlers
 
 import (
 	"context"
-	"fmt"
-	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/gin-gonic/gin"
+	"github.com/shopspring/decimal"
 
 	"go-eth/consts"
 )
@@ -22,11 +21,8 @@ func GetUserBalance(c *gin.Context) {
 	}
 
 	balance, err := client.BalanceAt(context.Background(), address, nil)
-	fmt.Println(balance.String())
-	var ethBalance big.Float
-	ethBalance.SetString(balance.String())
-	ethBalance.Quo(&ethBalance, big.NewFloat(1e18)).Text('g', 6)
-	fmt.Println(ethBalance.String())
+	ethBalance := decimal.NewFromBigInt(balance, 0)
+	ethBalance = ethBalance.Div(decimal.NewFromInt(1e18)).Round(6)
 
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
