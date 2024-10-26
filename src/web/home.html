@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Interaction with Web3</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f4f4f9, #e0e0eb);
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        h1 {
+            text-align: center;
+            color: #4a4a8c;
+            margin-bottom: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            color: #4a4a8c;
+            margin-bottom: 10px;
+        }
+
+        .button {
+            background-color: #4a4a8c;
+            color: #fff;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            margin-right: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+        }
+
+        .button:hover {
+            background-color: #3a3a6c;
+            transform: scale(1.05);
+        }
+
+        .button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        input[type="text"] {
+            width: calc(100% - 24px);
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        p {
+            background-color: #e9e9f0;
+            padding: 12px;
+            border-radius: 8px;
+            word-wrap: break-word;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .info {
+            background-color: #f0f0f5;
+            padding: 20px;
+            border-radius: 12px;
+            word-wrap: break-word;
+            margin-top: 15px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+        }
+
+        .info-icon {
+            width: 30px;
+            height: 30px;
+            background-color: #4a4a8c;
+            display: inline-block;
+            margin-right: 15px;
+            border-radius: 4px; /* Slightly rounded corners */
+        }
+
+        .info-text {
+            font-size: 1.2em;
+            color: #333;
+        }
+
+        .status {
+            font-size: 1.1em;
+            color: #4a4a8c;
+            margin-top: 15px;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+    <script>
+        let userAddress = '';
+
+        async function connectWallet() {
+            if (window.ethereum) {
+                window.web3 = new Web3(ethereum);
+                try {
+                    await ethereum.request({ method: 'eth_requestAccounts' });
+                    console.log('Connected to wallet');
+                    document.getElementById('walletStatus').innerText = 'Wallet Connected';
+                    displayUserInfo(); 
+
+                    document.getElementById('coinSection').style.display = 'block';
+
+                    ethereum.on('accountsChanged', handleAccountsChanged);
+
+                    await ethereum.request({
+                        method: 'wallet_switchEthereumChain',
+                        params: [{ chainId: '0x12FD1' }], 
+                    });
+
+                } catch (error) {
+                    if (error.code === 4902) {
+                        try {
+                            await ethereum.request({
+                                method: 'wallet_addEthereumChain',
+                                params: [{
+                                    chainId: '0x12FD1', 
+                                    chainName: 'TonyChain',
+                                    rpcUrls: ['http://localhost:32002'], 
+                                    nativeCurrency: {
+                                        name: 'ETH',
+                                        symbol: 'ETH', 
+                                        decimals: 18
+                                    },
+                                }],
+                            });
+                        } catch (addError) {
+                            console.error('Failed to add network:', addError);
+                        }
+                    } else {
+                        console.error('User denied account access or network switch', error);
+                    }
+                    document.getElementById('walletStatus').innerText = 'Connection Failed';
+                }
+            } else {
+                console.log('Non-Ethereum browser detected. You should consider trying MetaMask!');
+                document.getElementById('walletStatus').innerText = 'MetaMask Not Detected';
+            }
+        }
+
+        function handleAccountsChanged(accounts) {
+            if (accounts.length === 0) {
+                disconnectWallet();
+            } else {
+                userAddress = accounts[0];
+                document.getElementById('userAddress').innerText = `Address: ${userAddress}`;
+                updateData(); 
+            }
+        }
+
+        async function displayUserInfo() {
+            const accounts = await web3.eth.getAccounts();
+            if (accounts.length > 0) {
+                userAddress = accounts[0];
+                document.getElementById('userAddress').innerText = `Address: ${userAddress}`;
+                updateData(); // Initial data fetch
+            } else {
+                document.getElementById('userAddress').innerText = 'No accounts found';
+                document.getElementById('userBalance').innerText = '';
+            }
+        }
+
+        async function updateData() {
+            getUserBalance(userAddress);
+        }
+
+        async function getUserBalance(address) {
+            if (address != ""){
+                try {
+                    const response = await fetch(`/user/balance/${address}`);
+                    const data = await response.json();
+                    if (response.ok) {
+                        document.getElementById('userBalance').innerText = `Balance: ${data.balance} ETH`;
+                    } else {
+                        document.getElementById('userBalance').innerText = 'Error fetching balance';
+                    }
+                } catch (error) {
+                    console.error('Error fetching balance:', error);
+                    document.getElementById('userBalance').innerText = 'Error fetching balance';
+                }
+            }
+        }
+
+        async function getLatestBlockHeight() {
+            try {
+                const response = await fetch('/block/latest');
+                const data = await response.json();
+                console.log('Block data:', data); 
+                if (response.ok && data.blockHeight !== undefined) {
+                    document.getElementById('latestBlock').innerText = `Latest Block: ${data.blockHeight}`;
+                } else {
+                    document.getElementById('latestBlock').innerText = 'Error fetching block height';
+                }
+            } catch (error) {
+                console.error('Error fetching block height:', error);
+                document.getElementById('latestBlock').innerText = 'Error fetching block height';
+            }
+        }
+
+        window.onload = function () {
+            getLatestBlockHeight();
+            setInterval(getLatestBlockHeight, 5000); // Update every 5 seconds
+            setInterval(updateData, 5000); // Update every 5 seconds
+            checkReceiveButtonStatus();
+        };
+
+        function checkReceiveButtonStatus() {
+            const receiveButton = document.getElementById('receiveButton');
+            const receiveStatus = getCookie('receiveStatus');
+            if (receiveStatus === 'locked') {
+                receiveButton.disabled = true;
+                setTimeout(() => {
+                    receiveButton.disabled = false;
+                    document.cookie = 'receiveStatus=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+                }, 15000); // 15 seconds
+            }
+        }
+
+        function setCookie(name, value, seconds) {
+            const date = new Date();
+            date.setTime(date.getTime() + (seconds * 1000));
+            const expires = "expires=" + date.toUTCString();
+            document.cookie = name + "=" + value + ";" + expires + ";path=/";
+        }
+
+        function getCookie(name) {
+            const nameEQ = name + "=";
+            const ca = document.cookie.split(';');
+            for (let i = 0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+                if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+            }
+            return null;
+        }
+
+        async function receiveNativeCoin() {
+            const receiveButton = document.getElementById('receiveButton');
+            if (!receiveButton) {
+                console.error('Receive button not found');
+                return;
+            }
+            receiveButton.disabled = true;
+            setCookie('receiveStatus', 'locked', 15); // Lock for 15 seconds
+
+            try {
+                const response = await fetch('/currency/receive', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        "walletAddress": userAddress
+                    })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    document.getElementById('receiveResult').innerText = `Transaction Hash: ${data.transactionHash}`;
+                    getUserBalance(userAddress); // Update balance after receiving coins
+                } else {
+                    document.getElementById('receiveResult').innerText = 'Error receiving coins';
+                }
+            } catch (error) {
+                console.error('Error receiving coins:', error);
+                document.getElementById('receiveResult').innerText = 'Error receiving coins';
+            } finally {
+                setTimeout(() => {
+                    receiveButton.disabled = false;
+                    document.cookie = 'receiveStatus=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+                }, 15000); // 15 seconds
+            }
+        }
+
+        async function sendNativeCoin() {
+            const recipientAddress = document.getElementById('recipientAddress').value;
+            const amount = document.getElementById('amount').value;
+
+            if (!recipientAddress || !amount) {
+                document.getElementById('sendResult').innerText = 'Please enter a valid address and amount.';
+                return;
+            }
+
+            try {
+                const transactionParameters = {
+                    to: recipientAddress, // Required except during contract publications.
+                    from: userAddress, // Must match user's active address.
+                    value: (Number(amount) * 1e18).toString(16)
+                };
+                console.log('transactionParameters', transactionParameters);
+                // Request the user's signature
+                const txHash = await ethereum.request({
+                    method: 'eth_sendTransaction',
+                    params: [transactionParameters],
+                });
+
+                document.getElementById('sendResult').innerText = `Transaction Hash: ${txHash}`;
+            } catch (error) {
+                console.error('Error sending coins:', error);
+                document.getElementById('sendResult').innerText = 'Error sending coins';
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="section">
+            <h2>Connect to Wallet</h2>
+            <button class="button" onclick="connectWallet()">Connect Wallet</button>
+            <p id="walletStatus"></p>
+        </div>
+
+        <div class="section">
+            <h2>Blockchain Information</h2>
+            <div class="info">
+                <span class="info-icon">🔗</span>
+                <span class="info-text" id="latestBlock"></span>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>User Information</h2>
+            <div class="info" style="flex-direction: column; align-items: flex-start;">
+                <p id="userAddress"></p>
+                <p id="userBalance"></p>
+            </div>
+        </div>
+
+        <div id="coinSection" class="section" style="display: none;">
+            <h2>Get Free Money 1 ETH (15 seconds cooldown)</h2>
+            <button id="receiveButton" class="button" onclick="receiveNativeCoin()">Receive Coin</button>
+            <p id="receiveResult"></p>
+
+            <h2>Send ETH to Other Address</h2>
+            <input type="text" id="recipientAddress" placeholder="Recipient Address" />
+            <input type="text" id="amount" placeholder="Amount in ETH" />
+            <button class="button" onclick="sendNativeCoin()">Send Coin</button>
+            <p id="sendResult"></p>
+        </div>
+    </div>
+</body>
+
+</html>

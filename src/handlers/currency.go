@@ -75,5 +75,5 @@ func ReceiveNativeCoin(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, gin.H{"status": "transaction_sent", "tx_hash": signedTx.Hash().Hex()})
+	c.JSON(200, gin.H{"status": "success", "transactionHash": signedTx.Hash().Hex()})
 }
