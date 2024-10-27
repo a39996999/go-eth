@@ -13,5 +13,5 @@ func init() {
 func main() {
 	cronjob.RunSyncTransaction()
 	r := router.InitRouter()
-	r.Run()
+	r.Run("127.0.0.1:8080")
 }

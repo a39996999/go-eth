@@ -13,8 +13,12 @@ import (
 )
 
 func CreateUser(c *gin.Context) {
-	address := common.HexToAddress(c.Param("address"))
-	user := &repositories.User{Address: address.Hex(), CurrentSyncBlock: 0}
+	address := c.Param("address")
+	if !common.IsHexAddress(address) {
+		c.JSON(400, gin.H{"error": "Invalid address"})
+		return
+	}
+	user := &repositories.User{Address: address, CurrentSyncBlock: 0}
 	if _, err := user.UpsertOne(); err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -23,7 +27,11 @@ func CreateUser(c *gin.Context) {
 }
 
 func GetUserBalance(c *gin.Context) {
-	address := common.HexToAddress(c.Param("address"))
+	address := c.Param("address")
+	if !common.IsHexAddress(address) {
+		c.JSON(400, gin.H{"error": "Invalid address"})
+		return
+	}
 
 	client, err := ethclient.Dial(consts.CHAIN_RPC_URL)
 	if err != nil {
@@ -31,7 +39,7 @@ func GetUserBalance(c *gin.Context) {
 		return
 	}
 
-	balance, err := client.BalanceAt(context.Background(), address, nil)
+	balance, err := client.BalanceAt(context.Background(), common.HexToAddress(address), nil)
 	ethBalance := decimal.NewFromBigInt(balance, 0)
 	ethBalance = ethBalance.Div(decimal.NewFromInt(1e18)).Round(6)
 

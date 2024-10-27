@@ -23,7 +23,7 @@ func ReceiveNativeCoin(c *gin.Context) {
 	}
 
 	var reqBody RequestBody
-	if err := c.ShouldBindJSON(&reqBody); err != nil {
+	if err := c.ShouldBindJSON(&reqBody); err != nil || !common.IsHexAddress(reqBody.WalletAddress) {
 		c.JSON(400, gin.H{"error": "Invalid request body"})
 		return
 	}
