@@ -60,3 +60,11 @@ func GetBalance(address string) (*big.Int, error) {
 	}
 	return balance, nil
 }
+
+func GetBlockByNumber(blockNumber int64) (*types.Block, error) {
+	block, err := EthClient.BlockByNumber(context.Background(), big.NewInt(blockNumber))
+	if err != nil {
+		return nil, err
+	}
+	return block, nil
+}

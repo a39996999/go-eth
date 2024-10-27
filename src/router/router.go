@@ -13,6 +13,7 @@ func InitRouter() *gin.Engine {
 	router.GET("/", func(c *gin.Context) {
 		c.HTML(200, "home.html", nil)
 	})
+
 	router.GET("/block/latest", handlers.GetLatestBlockHeight)
 	router.GET("/user/balance/:address", handlers.GetUserBalance)
 	router.POST("/user/create/:address", handlers.CreateUser)

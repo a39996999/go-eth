@@ -1,61 +1,68 @@
 package cronjob
 
 import (
-	"context"
 	"go-eth/consts"
 	"go-eth/repositories"
+	"go-eth/service"
 	"log"
 	"math/big"
 	"time"
 
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/robfig/cron/v3"
 )
 
 func RunSyncTransaction() {
 	c := cron.New()
 	c.AddFunc("@every 15s", func() {
-		client, err := ethclient.Dial(consts.CHAIN_RPC_URL)
-		if err != nil {
-			log.Printf("Failed to connect to the Ethereum client: %v", err)
-			return
-		}
-
 		users, err := (&repositories.User{}).GetAll()
 		if err != nil {
 			log.Printf("Failed to get users: %v", err)
 			return
 		}
 
-		currentBlock, err := client.BlockNumber(context.Background())
+		currentBlock, err := service.GetLatestBlockHeight()
 		if err != nil {
 			log.Printf("Failed to get current block number: %v", err)
 			return
 		}
 
-		chainId := big.NewInt(consts.CHAIN_ID)
 		startTime := time.Now()
-
+		user_map := make(map[string]*repositories.User)
+		minBlockNumber := uint64(currentBlock)
 		for _, user := range users {
-			go func(user *repositories.User) {
-				log.Printf("Syncing transactions for user: %v", user.Address)
-				log.Printf("Current sync block: %v", user.CurrentSyncBlock)
-				for blockNumber := user.CurrentSyncBlock; blockNumber <= currentBlock; blockNumber++ {
-					block, err := client.BlockByNumber(context.Background(), big.NewInt(int64(blockNumber)))
+			user_map[user.Address] = user
+			if user.CurrentSyncBlock < minBlockNumber {
+				minBlockNumber = user.CurrentSyncBlock
+			}
+		}
+
+		blockBatchSize := 500
+		for startBlock := minBlockNumber; startBlock <= uint64(currentBlock); startBlock += uint64(blockBatchSize) {
+			endBlock := startBlock + uint64(blockBatchSize) - 1
+			if endBlock > uint64(currentBlock) {
+				endBlock = uint64(currentBlock)
+			}
+
+			go func(start, end uint64) {
+				for blockNumber := start; blockNumber <= end; blockNumber++ {
+					block, err := service.GetBlockByNumber(int64(blockNumber))
 					if err != nil {
 						log.Printf("Failed to get block: %v", err)
+						continue
 					}
 
-					for _, tx := range block.Transactions() {
-						msg, err := types.Sender(types.LatestSignerForChainID(chainId), tx)
+					transactions := block.Transactions()
+					for _, tx := range transactions {
+						msg, err := types.Sender(types.LatestSignerForChainID(big.NewInt(consts.CHAIN_ID)), tx)
 						if err != nil {
 							log.Printf("Failed to get transaction sender: %v", err)
 							continue
 						}
+
 						from := msg.Hex()
 						to := tx.To().Hex()
-						if from == user.Address || to == user.Address {
+						if user_map[from] != nil || user_map[to] != nil {
 							log.Printf("Transaction from: %v, to: %v, hash: %v", from, to, tx.Hash().Hex())
 						}
 
@@ -75,11 +82,14 @@ func RunSyncTransaction() {
 						}
 					}
 				}
-				user.CurrentSyncBlock = currentBlock
-				if _, err := user.UpdateBlockNumber(); err != nil {
-					log.Printf("Failed to update user block number: %v", err)
-				}
-			}(user)
+			}(startBlock, endBlock)
+		}
+
+		for _, user := range users {
+			user.CurrentSyncBlock = uint64(currentBlock)
+			if _, err := user.UpdateBlockNumber(); err != nil {
+				log.Printf("Failed to update user block number: %v", err)
+			}
 		}
 
 		endTime := time.Now()
