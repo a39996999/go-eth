@@ -9,14 +9,15 @@ import (
 )
 
 type Transaction struct {
-	From     string `bson:"from"`
-	To       string `bson:"to"`
-	Hash     string `bson:"hash"`
-	Value    string `bson:"value"`
-	Gas      uint64 `bson:"gas"`
-	GasPrice string `bson:"gas_price"`
-	Nonce    uint64 `bson:"nonce"`
-	Data     string `bson:"data"`
+	From      string `bson:"from"`
+	To        string `bson:"to"`
+	Hash      string `bson:"hash"`
+	Value     string `bson:"value"`
+	Gas       uint64 `bson:"gas"`
+	GasPrice  string `bson:"gas_price"`
+	Nonce     uint64 `bson:"nonce"`
+	Data      string `bson:"data"`
+	Timestamp int64  `bson:"timestamp"`
 }
 
 func (t *Transaction) UpsertOne() (*mongo.UpdateResult, error) {
@@ -36,7 +37,7 @@ func (t *Transaction) GetUserTransactions(address string) ([]*Transaction, error
 		Find(context.TODO(), bson.M{"$or": []bson.M{
 			{"from": address},
 			{"to": address},
-		}}, options.Find().SetSort(bson.M{"nonce": -1}))
+		}}, options.Find().SetSort(bson.M{"timestamp": -1}))
 	if err != nil {
 		return nil, err
 	}

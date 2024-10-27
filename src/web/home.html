@@ -394,6 +394,10 @@
                 transactions.forEach(tx => {
                     const txElement = document.createElement('div');
                     txElement.className = 'transaction-item';
+
+                    const date = new Date(tx.Timestamp * 1000);
+                    const formattedDate = date.toLocaleString();
+
                     txElement.innerHTML = `
                         <p><strong>From:</strong> ${tx.From}</p>
                         <p><strong>To:</strong> ${tx.To}</p>
@@ -403,6 +407,7 @@
                         <p><strong>Gas Price:</strong> ${tx.GasPrice} wei</p>
                         <p><strong>Nonce:</strong> ${tx.Nonce}</p>
                         <p><strong>Data:</strong> ${tx.Data || 'N/A'}</p>
+                        <p><strong>Timestamp:</strong> ${formattedDate}</p>
                     `;
                     transactionHistoryDiv.appendChild(txElement);
                 });

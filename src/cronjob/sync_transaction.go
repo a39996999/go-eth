@@ -19,16 +19,19 @@ func RunSyncTransaction() {
 		client, err := ethclient.Dial(consts.CHAIN_RPC_URL)
 		if err != nil {
 			log.Printf("Failed to connect to the Ethereum client: %v", err)
+			return
 		}
 
 		users, err := (&repositories.User{}).GetAll()
 		if err != nil {
 			log.Printf("Failed to get users: %v", err)
+			return
 		}
 
 		currentBlock, err := client.BlockNumber(context.Background())
 		if err != nil {
 			log.Printf("Failed to get current block number: %v", err)
+			return
 		}
 
 		chainId := big.NewInt(consts.CHAIN_ID)
@@ -57,14 +60,15 @@ func RunSyncTransaction() {
 						}
 
 						transaction := &repositories.Transaction{
-							From:     from,
-							To:       to,
-							Hash:     tx.Hash().Hex(),
-							Value:    tx.Value().String(),
-							Gas:      tx.Gas(),
-							GasPrice: tx.GasPrice().String(),
-							Nonce:    tx.Nonce(),
-							Data:     string(tx.Data()),
+							From:      from,
+							To:        to,
+							Hash:      tx.Hash().Hex(),
+							Value:     tx.Value().String(),
+							Gas:       tx.Gas(),
+							GasPrice:  tx.GasPrice().String(),
+							Nonce:     tx.Nonce(),
+							Data:      string(tx.Data()),
+							Timestamp: int64(block.Time()),
 						}
 						if _, err := transaction.UpsertOne(); err != nil {
 							log.Printf("Failed to upsert transaction: %v", err)
