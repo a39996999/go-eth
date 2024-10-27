@@ -13,7 +13,7 @@
             margin: 0;
             padding: 20px;
             display: flex;
-            justify-content: center;
+            justify-content: flex-start; /* 改為 flex-start 讓內容靠左 */
             align-items: center;
             height: 100vh;
         }
@@ -25,12 +25,13 @@
         }
 
         .container {
-            max-width: 600px;
+            max-width: 1200px; /* 增加最大寬度 */
             width: 100%;
             background-color: #fff;
             padding: 30px;
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            margin: 0 auto; /* 居中顯示 */
         }
 
         .section {
@@ -111,6 +112,21 @@
             color: #4a4a8c;
             margin-top: 15px;
         }
+
+        .transaction-container {
+            background-color: #f9f9ff; /* 設置背景顏色 */
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            margin-top: 20px; /* 與其他區塊分開 */
+        }
+
+        .transaction-history {
+            max-height: 400px;
+            overflow-y: auto;
+            flex-direction: column;
+            align-items: flex-start;
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
     <script>
@@ -181,6 +197,7 @@
                 userAddress = accounts[0];
                 document.getElementById('userAddress').innerText = `Address: ${userAddress}`;
                 updateData(); // Initial data fetch
+                fetchTransactionHistory(userAddress); // Fetch transaction history
             } else {
                 document.getElementById('userAddress').innerText = 'No accounts found';
                 document.getElementById('userBalance').innerText = '';
@@ -338,43 +355,66 @@
                 document.getElementById('sendResult').innerText = 'Error sending coins';
             }
         }
+
+        async function fetchTransactionHistory(address) {
+            try {
+                const response = await fetch(`/transactions/${address}`);
+                const transactions = await response.json();
+
+                const transactionHistoryDiv = document.getElementById('transactionHistory');
+                transactionHistoryDiv.innerHTML = ''; // 清空之前的內容
+
+                transactions.forEach(tx => {
+                    const txElement = document.createElement('p');
+                    txElement.innerText = `From: ${tx.From}, To: ${tx.To}, Value: ${tx.Value}, Hash: ${tx.Hash}`;
+                    transactionHistoryDiv.appendChild(txElement);
+                });
+            } catch (error) {
+                console.error('Error fetching transaction history:', error);
+                document.getElementById('transactionHistory').innerText = 'Error fetching transaction history';
+            }
+        }
     </script>
 </head>
 
 <body>
     <div class="container">
-        <div class="section">
-            <h2>Connect to Wallet</h2>
-            <button class="button" onclick="connectWallet()">Connect Wallet</button>
-            <p id="walletStatus"></p>
-        </div>
+        <div class="section" style="display: flex; justify-content: space-between;">
+            <div style="flex: 1.5; margin-right: 20px;">
+                <h2>Connect to Wallet</h2>
+                <button class="button" onclick="connectWallet()">Connect Wallet</button>
+                <p id="walletStatus"></p>
 
-        <div class="section">
-            <h2>Blockchain Information</h2>
-            <div class="info">
-                <span class="info-icon">🔗</span>
-                <span class="info-text" id="latestBlock"></span>
+                <h2>Blockchain Information</h2>
+                <div class="info">
+                    <span class="info-icon">🔗</span>
+                    <span class="info-text" id="latestBlock"></span>
+                </div>
+
+                <h2>User Information</h2>
+                <div class="info" style="flex-direction: column; align-items: flex-start;">
+                    <p id="userAddress"></p>
+                    <p id="userBalance"></p>
+                </div>
+
+                <div id="coinSection" class="section" style="display: none;">
+                    <h2>Get Free Money 1 ETH (15 seconds cooldown)</h2>
+                    <button id="receiveButton" class="button" onclick="receiveNativeCoin()">Receive Coin</button>
+                    <p id="receiveResult"></p>
+
+                    <h2>Send ETH to Other Address</h2>
+                    <input type="text" id="recipientAddress" placeholder="Recipient Address" />
+                    <input type="text" id="amount" placeholder="Amount in ETH" />
+                    <button class="button" onclick="sendNativeCoin()">Send Coin</button>
+                    <p id="sendResult"></p>
+                </div>
             </div>
-        </div>
 
-        <div class="section">
-            <h2>User Information</h2>
-            <div class="info" style="flex-direction: column; align-items: flex-start;">
-                <p id="userAddress"></p>
-                <p id="userBalance"></p>
+            <div class="transaction-container" style="flex: 1.5; margin-left: 20px;">
+                <h2>Transaction History</h2>
+                <div id="transactionHistory" class="transaction-history">
+                </div>
             </div>
-        </div>
-
-        <div id="coinSection" class="section" style="display: none;">
-            <h2>Get Free Money 1 ETH (15 seconds cooldown)</h2>
-            <button id="receiveButton" class="button" onclick="receiveNativeCoin()">Receive Coin</button>
-            <p id="receiveResult"></p>
-
-            <h2>Send ETH to Other Address</h2>
-            <input type="text" id="recipientAddress" placeholder="Recipient Address" />
-            <input type="text" id="amount" placeholder="Amount in ETH" />
-            <button class="button" onclick="sendNativeCoin()">Send Coin</button>
-            <p id="sendResult"></p>
         </div>
     </div>
 </body>
