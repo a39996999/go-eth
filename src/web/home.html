@@ -114,18 +114,45 @@
         }
 
         .transaction-container {
-            background-color: #f9f9ff; /* 設置背景顏色 */
+            background-color: #f9f9ff;
             padding: 20px;
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            margin-top: 20px; /* 與其他區塊分開 */
+            margin-top: 20px;
         }
 
         .transaction-history {
-            max-height: 400px;
+            max-height: 800px; /* 增加最大高度 */
             overflow-y: auto;
             flex-direction: column;
             align-items: flex-start;
+        }
+
+        .transaction-item {
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-bottom: 15px;
+            border: 1px solid #e0e0e0;
+            transition: transform 0.2s;
+        }
+
+        .transaction-item:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .transaction-item p {
+            margin: 5px 0;
+            font-size: 0.9em;
+            color: #333;
+        }
+
+        .transaction-item .hash {
+            font-size: 0.8em;
+            color: #666;
+            word-wrap: break-word;
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
@@ -365,8 +392,18 @@
                 transactionHistoryDiv.innerHTML = ''; // 清空之前的內容
 
                 transactions.forEach(tx => {
-                    const txElement = document.createElement('p');
-                    txElement.innerText = `From: ${tx.From}, To: ${tx.To}, Value: ${tx.Value}, Hash: ${tx.Hash}`;
+                    const txElement = document.createElement('div');
+                    txElement.className = 'transaction-item';
+                    txElement.innerHTML = `
+                        <p><strong>From:</strong> ${tx.From}</p>
+                        <p><strong>To:</strong> ${tx.To}</p>
+                        <p class="hash"><strong>Hash:</strong> ${tx.Hash}</p>
+                        <p><strong>Value:</strong> ${parseFloat(tx.Value) / 1e18} ETH</p>
+                        <p><strong>Gas:</strong> ${tx.Gas}</p>
+                        <p><strong>Gas Price:</strong> ${tx.GasPrice} wei</p>
+                        <p><strong>Nonce:</strong> ${tx.Nonce}</p>
+                        <p><strong>Data:</strong> ${tx.Data || 'N/A'}</p>
+                    `;
                     transactionHistoryDiv.appendChild(txElement);
                 });
             } catch (error) {
@@ -413,6 +450,7 @@
             <div class="transaction-container" style="flex: 1.5; margin-left: 20px;">
                 <h2>Transaction History</h2>
                 <div id="transactionHistory" class="transaction-history">
+                    <!-- 交易歷史將在這裡顯示 -->
                 </div>
             </div>
         </div>
