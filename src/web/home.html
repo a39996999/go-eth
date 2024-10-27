@@ -158,6 +158,7 @@
                     }
                     document.getElementById('walletStatus').innerText = 'Connection Failed';
                 }
+                createUser(userAddress);
             } else {
                 console.log('Non-Ethereum browser detected. You should consider trying MetaMask!');
                 document.getElementById('walletStatus').innerText = 'MetaMask Not Detected';
@@ -188,6 +189,18 @@
 
         async function updateData() {
             getUserBalance(userAddress);
+        }
+
+        async function createUser(address) {
+            if (address !== "") {
+                try {
+                    const response = await fetch(`/user/create/${address}`, {
+                        method: 'POST'
+                    });
+                } catch (error) {
+                    console.error('Error creating user:', error);
+                }
+            }
         }
 
         async function getUserBalance(address) {
