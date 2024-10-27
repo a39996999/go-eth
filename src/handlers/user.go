@@ -9,7 +9,18 @@ import (
 	"github.com/shopspring/decimal"
 
 	"go-eth/consts"
+	"go-eth/repositories"
 )
+
+func CreateUser(c *gin.Context) {
+	address := common.HexToAddress(c.Param("address"))
+	user := &repositories.User{Address: address.Hex(), CurrentSyncBlock: 0}
+	if _, err := user.UpsertOne(); err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(200, gin.H{"message": "User created"})
+}
 
 func GetUserBalance(c *gin.Context) {
 	address := common.HexToAddress(c.Param("address"))

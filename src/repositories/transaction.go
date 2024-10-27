@@ -19,7 +19,7 @@ type Transaction struct {
 	Data     string `bson:"data"`
 }
 
-func (t *Transaction) CreateOne() (*mongo.UpdateResult, error) {
+func (t *Transaction) UpsertOne() (*mongo.UpdateResult, error) {
 	result, err := client.Database("go-eth").
 		Collection("transactions").
 		UpdateOne(context.TODO(),
