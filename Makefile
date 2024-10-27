@@ -11,8 +11,11 @@ run-service:
 	docker compose up -d
 
 restart-service:
+	docker compose down go-eth-service
+	docker compose up go-eth-service -d
+
+remove-service:
 	docker compose down
-	docker compose up -d
 
 connect-containers:
 	@containers=$$(docker ps --filter "name=el-1-geth-teku-" --format "{{.ID}}"); \
@@ -23,6 +26,3 @@ connect-containers:
 		echo "Connecting container $$new_name to network go-eth_bridge-network"; \
 		docker network connect go-eth_bridge-network $$new_name; \
 	done
-
-stop-service:
-	docker compose down

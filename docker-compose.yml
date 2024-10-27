@@ -17,11 +17,14 @@ services:
 
   mongo:
     container_name: mongo
-    image: mongo:5.0
+    image: mongo
     ports:
       - "27017:27017"
     networks:
       - bridge-network
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=root
 
 networks:
   bridge-network:
