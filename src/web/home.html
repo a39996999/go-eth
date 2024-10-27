@@ -285,6 +285,7 @@
             setInterval(getLatestBlockHeight, 5000); // Update every 5 seconds
             setInterval(updateData, 5000); // Update every 5 seconds
             checkReceiveButtonStatus();
+            setInterval(() => fetchTransactionHistory(userAddress), 5000); 
         };
 
         function checkReceiveButtonStatus() {
