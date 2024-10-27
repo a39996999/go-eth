@@ -16,7 +16,6 @@ func InitRouter() *gin.Engine {
 	router.GET("/block/latest", handlers.GetLatestBlockHeight)
 	router.GET("/user/balance/:address", handlers.GetUserBalance)
 	router.POST("/user/create/:address", handlers.CreateUser)
-	router.POST("/currency/send", handlers.SendNativeCoin)
 	router.POST("/currency/receive", handlers.ReceiveNativeCoin)
 
 	return router
