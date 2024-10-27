@@ -29,3 +29,22 @@ func (t *Transaction) UpsertOne() (*mongo.UpdateResult, error) {
 		)
 	return result, err
 }
+
+func (t *Transaction) GetUserTransactions(address string) ([]*Transaction, error) {
+	cursor, err := client.Database("go-eth").
+		Collection("transactions").
+		Find(context.TODO(), bson.M{"$or": []bson.M{
+			{"from": address},
+			{"to": address},
+		}}, options.Find().SetSort(bson.M{"nonce": -1}))
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.TODO())
+
+	var transactions []*Transaction
+	if err := cursor.All(context.TODO(), &transactions); err != nil {
+		return nil, err
+	}
+	return transactions, nil
+}

@@ -17,6 +17,7 @@ func InitRouter() *gin.Engine {
 	router.GET("/user/balance/:address", handlers.GetUserBalance)
 	router.POST("/user/create/:address", handlers.CreateUser)
 	router.POST("/currency/receive", handlers.ReceiveNativeCoin)
+	router.GET("/transactions/:address", handlers.GetAllTransactions)
 
 	return router
 }
