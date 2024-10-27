@@ -16,7 +16,7 @@ func CreateUser(c *gin.Context) {
 		c.JSON(400, gin.H{"error": "Invalid address"})
 		return
 	}
-	user := &repositories.User{Address: address, CurrentSyncBlock: 0}
+	user := &repositories.User{Address: common.HexToAddress(address).Hex(), CurrentSyncBlock: 0}
 	if _, err := user.UpsertOne(); err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -31,7 +31,7 @@ func GetUserBalance(c *gin.Context) {
 		return
 	}
 
-	balance, err := service.GetBalance(address)
+	balance, err := service.GetBalance(common.HexToAddress(address).Hex())
 	ethBalance := decimal.NewFromBigInt(balance, 0)
 	ethBalance = ethBalance.Div(decimal.NewFromInt(1e18)).Round(6)
 
