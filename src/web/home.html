@@ -174,7 +174,7 @@
 
                     await ethereum.request({
                         method: 'wallet_switchEthereumChain',
-                        params: [{ chainId: '0x12FD1' }], 
+                        params: [{ chainId: '0x1E61' }], 
                     });
 
                 } catch (error) {
@@ -183,11 +183,11 @@
                             await ethereum.request({
                                 method: 'wallet_addEthereumChain',
                                 params: [{
-                                    chainId: '0x12FD1', 
-                                    chainName: 'TonyChain',
+                                    chainId: '0x1E61', 
+                                    chainName: 'TonyTestNet',
                                     rpcUrls: ['http://localhost:32002'], 
                                     nativeCurrency: {
-                                        name: 'ETH',
+                                        name: 'Ethereum',
                                         symbol: 'ETH', 
                                         decimals: 18
                                     },

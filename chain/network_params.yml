@@ -23,7 +23,7 @@ port_publisher:
     public_port_start: 33000
 
 network_params:
-  network_id: "77777"
+  network_id: "7777"
   # A number of prefunded accounts to be created
   # Defaults to no prefunded accounts
   # Example:
