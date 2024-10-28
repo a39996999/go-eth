@@ -92,6 +92,8 @@ kurtosis run github.com/ethpandaops/ethereum-package --args-file ./chain/network
 以上就是使用 Kurtosis 架設私有鏈的過程，設定檔還有很多東西可以設定的地方，我自己在架設的時候只有需要多用到`prefunded_accounts`的部分，因為要發錢給自己的地址做為可以領錢的地址，以及還可以設定IP，如果要在區域網路下設定就非常方便，接下來會介紹如何啟動 Service 的部分
 
 # 系統功能與架構介紹
+## 系統畫面
+![alt text](image-1.png)
 
 ## 前情提要
 在啟動系統之前，請確保已經完成以下準備工作：
