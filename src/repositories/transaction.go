@@ -2,38 +2,39 @@ package repositories
 
 import (
 	"context"
+	"go-eth/domain"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"gopkg.in/mgo.v2/bson"
 )
 
-type Transaction struct {
-	From      string `bson:"from"`
-	To        string `bson:"to"`
-	Hash      string `bson:"hash"`
-	Value     string `bson:"value"`
-	Gas       uint64 `bson:"gas"`
-	GasPrice  string `bson:"gas_price"`
-	Nonce     uint64 `bson:"nonce"`
-	Data      string `bson:"data"`
-	Timestamp int64  `bson:"timestamp"`
+type transactionRepository struct {
+	client     *mongo.Database
+	collection string
 }
 
-func (t *Transaction) UpsertOne() (*mongo.UpdateResult, error) {
-	result, err := client.Database("go-eth").
-		Collection("transactions").
+func NewTransactionRepository(client *mongo.Database) domain.TransactionRepository {
+	return &transactionRepository{
+		client:     client,
+		collection: domain.CollectionTransaction,
+	}
+}
+
+func (t *transactionRepository) UpsertTransaction(transaction *domain.Transaction) (*mongo.UpdateResult, error) {
+	collection := t.client.Collection(t.collection)
+	result, err := collection.
 		UpdateOne(context.TODO(),
-			bson.M{"hash": t.Hash},
-			bson.M{"$set": t},
+			bson.M{"hash": transaction.Hash},
+			bson.M{"$set": transaction},
 			options.Update().SetUpsert(true),
 		)
 	return result, err
 }
 
-func (t *Transaction) GetUserTransactions(address string) ([]*Transaction, error) {
-	cursor, err := client.Database("go-eth").
-		Collection("transactions").
+func (t *transactionRepository) GetUserTransactions(address string) ([]*domain.Transaction, error) {
+	collection := t.client.Collection(t.collection)
+	cursor, err := collection.
 		Find(context.TODO(), bson.M{"$or": []bson.M{
 			{"from": address},
 			{"to": address},
@@ -43,7 +44,7 @@ func (t *Transaction) GetUserTransactions(address string) ([]*Transaction, error
 	}
 	defer cursor.Close(context.TODO())
 
-	var transactions []*Transaction
+	var transactions []*domain.Transaction
 	if err := cursor.All(context.TODO(), &transactions); err != nil {
 		return nil, err
 	}
