@@ -17,8 +17,9 @@ func main() {
 	db := app.Mongo.Database("go-eth")
 	defer app.CloseMongoDBConnection()
 	env := app.Env
+	ethClient := app.EthClient
 
 	gin := gin.Default()
-	route.Setup(env, db, gin)
+	route.Setup(env, db, ethClient, gin)
 	gin.Run(":8080")
 }

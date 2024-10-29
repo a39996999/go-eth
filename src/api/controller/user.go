@@ -1,11 +1,12 @@
 package controller
 
 import (
+	"context"
 	"go-eth/domain"
-	"go-eth/service"
 	"log"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/gin-gonic/gin"
 	"github.com/shopspring/decimal"
 
@@ -14,6 +15,7 @@ import (
 
 type UserController struct {
 	UserRepository domain.UserRepository
+	EthClient      *ethclient.Client
 	Env            *bootstrap.Env
 }
 
@@ -41,7 +43,7 @@ func (uc *UserController) GetUserBalance(c *gin.Context) {
 		return
 	}
 
-	balance, err := service.GetBalance(common.HexToAddress(address).Hex())
+	balance, err := uc.EthClient.BalanceAt(context.Background(), common.HexToAddress(address), nil)
 	if err != nil {
 		log.Println("Failed to get balance:", err)
 		c.JSON(500, gin.H{"error": err.Error()})
