@@ -17,5 +17,6 @@ func Setup(env *bootstrap.Env, db *mongo.Database, ethClient *ethclient.Client, 
 	publicRouter := g.Group("")
 	NewUserRoute(env, db, ethClient, publicRouter)
 	NewBlockRoute(ethClient, publicRouter)
+	NewCurrencyRoute(env, ethClient, publicRouter)
 	NewTransactionRoute(env, db, publicRouter)
 }

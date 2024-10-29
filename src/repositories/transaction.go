@@ -10,19 +10,19 @@ import (
 )
 
 type transactionRepository struct {
-	client     *mongo.Database
+	db         *mongo.Database
 	collection string
 }
 
-func NewTransactionRepository(client *mongo.Database) domain.TransactionRepository {
+func NewTransactionRepository(db *mongo.Database) domain.TransactionRepository {
 	return &transactionRepository{
-		client:     client,
+		db:         db,
 		collection: domain.CollectionTransaction,
 	}
 }
 
 func (t *transactionRepository) UpsertTransaction(transaction *domain.Transaction) (*mongo.UpdateResult, error) {
-	collection := t.client.Collection(t.collection)
+	collection := t.db.Collection(t.collection)
 	result, err := collection.
 		UpdateOne(context.TODO(),
 			bson.M{"hash": transaction.Hash},
@@ -33,7 +33,7 @@ func (t *transactionRepository) UpsertTransaction(transaction *domain.Transactio
 }
 
 func (t *transactionRepository) GetUserTransactions(address string) ([]*domain.Transaction, error) {
-	collection := t.client.Collection(t.collection)
+	collection := t.db.Collection(t.collection)
 	cursor, err := collection.
 		Find(context.TODO(), bson.M{"$or": []bson.M{
 			{"from": address},

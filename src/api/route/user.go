@@ -3,7 +3,6 @@ package route
 import (
 	"go-eth/api/controller"
 	"go-eth/bootstrap"
-	"go-eth/domain"
 	"go-eth/repositories"
 
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -12,7 +11,7 @@ import (
 )
 
 func NewUserRoute(env *bootstrap.Env, db *mongo.Database, ethClient *ethclient.Client, router *gin.RouterGroup) {
-	userRepository := repositories.NewUserRepository(db, domain.CollectionUser)
+	userRepository := repositories.NewUserRepository(db)
 	userController := controller.UserController{
 		UserRepository: userRepository,
 		EthClient:      ethClient,

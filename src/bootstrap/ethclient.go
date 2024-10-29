@@ -13,3 +13,7 @@ func NewEthClient(env *Env) *ethclient.Client {
 	}
 	return ethClient
 }
+
+func CloseEthClient(ethClient *ethclient.Client) {
+	ethClient.Close()
+}

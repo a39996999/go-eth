@@ -22,3 +22,7 @@ func App() *Application {
 func (app *Application) CloseMongoDBConnection() {
 	CloseMongoDBConnection(app.Mongo)
 }
+
+func (app *Application) CloseEthClient() {
+	CloseEthClient(app.EthClient)
+}

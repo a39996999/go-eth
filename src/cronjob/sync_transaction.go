@@ -1,35 +1,43 @@
 package cronjob
 
 import (
-	"go-eth/consts"
-	"go-eth/repositories"
-	"go-eth/service"
+	"context"
+	"go-eth/bootstrap"
+	"go-eth/domain"
 	"log"
 	"math/big"
 	"time"
 
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/robfig/cron/v3"
 )
 
-func RunSyncTransaction() {
+type SyncTransaction struct {
+	EthClient             *ethclient.Client
+	UserRepository        domain.UserRepository
+	TransactionRepository domain.TransactionRepository
+	Env                   *bootstrap.Env
+}
+
+func (s *SyncTransaction) Run() {
 	c := cron.New()
 	c.AddFunc("@every 15s", func() {
-		users, err := (&repositories.User{}).GetAll()
+		users, err := s.UserRepository.GetAll()
 		if err != nil {
 			log.Printf("Failed to get users: %v", err)
 			return
 		}
 
-		currentBlock, err := service.GetLatestBlockHeight()
+		currentBlock, err := s.EthClient.BlockNumber(context.Background())
 		if err != nil {
 			log.Printf("Failed to get current block number: %v", err)
 			return
 		}
 
 		startTime := time.Now()
-		user_map := make(map[string]*repositories.User)
-		minBlockNumber := uint64(currentBlock)
+		user_map := make(map[string]*domain.User)
+		minBlockNumber := currentBlock
 		for _, user := range users {
 			user_map[user.Address] = user
 			if user.CurrentSyncBlock < minBlockNumber {
@@ -46,7 +54,7 @@ func RunSyncTransaction() {
 
 			go func(start, end uint64) {
 				for blockNumber := start; blockNumber <= end; blockNumber++ {
-					block, err := service.GetBlockByNumber(int64(blockNumber))
+					block, err := s.EthClient.BlockByNumber(context.Background(), big.NewInt(int64(blockNumber)))
 					if err != nil {
 						log.Printf("Failed to get block: %v", err)
 						continue
@@ -54,7 +62,7 @@ func RunSyncTransaction() {
 
 					transactions := block.Transactions()
 					for _, tx := range transactions {
-						msg, err := types.Sender(types.LatestSignerForChainID(big.NewInt(consts.CHAIN_ID)), tx)
+						msg, err := types.Sender(types.LatestSignerForChainID(big.NewInt(int64(s.Env.ChainID))), tx)
 						if err != nil {
 							log.Printf("Failed to get transaction sender: %v", err)
 							continue
@@ -66,7 +74,7 @@ func RunSyncTransaction() {
 							log.Printf("Transaction from: %v, to: %v, hash: %v", from, to, tx.Hash().Hex())
 						}
 
-						transaction := &repositories.Transaction{
+						transaction := &domain.Transaction{
 							From:      from,
 							To:        to,
 							Hash:      tx.Hash().Hex(),
@@ -77,7 +85,7 @@ func RunSyncTransaction() {
 							Data:      string(tx.Data()),
 							Timestamp: int64(block.Time()),
 						}
-						if _, err := transaction.UpsertOne(); err != nil {
+						if _, err := s.TransactionRepository.UpsertTransaction(transaction); err != nil {
 							log.Printf("Failed to upsert transaction: %v", err)
 						}
 					}
@@ -86,8 +94,7 @@ func RunSyncTransaction() {
 		}
 
 		for _, user := range users {
-			user.CurrentSyncBlock = uint64(currentBlock)
-			if _, err := user.UpdateBlockNumber(); err != nil {
+			if _, err := s.UserRepository.UpdateBlockNumber(user.Address, currentBlock); err != nil {
 				log.Printf("Failed to update user block number: %v", err)
 			}
 		}

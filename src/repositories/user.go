@@ -14,8 +14,11 @@ type userRepository struct {
 	collection string
 }
 
-func NewUserRepository(db *mongo.Database, collection string) domain.UserRepository {
-	return &userRepository{db, collection}
+func NewUserRepository(db *mongo.Database) domain.UserRepository {
+	return &userRepository{
+		db:         db,
+		collection: domain.CollectionUser,
+	}
 }
 
 func (ur *userRepository) UpsertOne(user *domain.User) (*mongo.UpdateResult, error) {
@@ -46,7 +49,7 @@ func (ur *userRepository) GetUser(address string) (*domain.User, error) {
 	return &user, nil
 }
 
-func (ur *userRepository) UpdateBlockNumber(address string, blockNumber int64) (*mongo.UpdateResult, error) {
+func (ur *userRepository) UpdateBlockNumber(address string, blockNumber uint64) (*mongo.UpdateResult, error) {
 	collection := ur.db.Collection(ur.collection)
 
 	result, err := collection.UpdateOne(context.TODO(), bson.M{"address": address},
