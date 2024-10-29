@@ -1,4 +1,4 @@
-package router
+package route
 
 import (
 	"go-eth/handlers"

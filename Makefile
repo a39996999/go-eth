@@ -18,7 +18,7 @@ remove-service:
 	docker compose down
 
 connect-containers:
-	@containers=$$(docker ps --filter "name=el-1-geth-teku-" --format "{{.ID}}"); \
+	@containers=$$(docker ps --filter "name=el-1-geth" --format "{{.ID}}"); \
 	for container in $$containers; do \
 		new_name="e1-1-geth"; \
 		echo "Renaming container $$container to $$new_name"; \
