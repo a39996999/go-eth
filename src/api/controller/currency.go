@@ -20,7 +20,7 @@ type CurrencyController struct {
 
 func (cc *CurrencyController) ReceiveNativeCoin(c *gin.Context) {
 	type RequestBody struct {
-		WalletAddress string `json:"walletAddress"`
+		WalletAddress string `form:"walletAddress" binding:"required"`
 	}
 
 	var reqBody RequestBody
